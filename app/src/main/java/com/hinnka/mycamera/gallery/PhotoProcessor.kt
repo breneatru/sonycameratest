@@ -896,13 +896,15 @@ class PhotoProcessor(
      */
     private fun detectSonySensorModel(metadata: MediaMetadata): String {
         // Try to get sensor info from metadata
-        val sensorModel = metadata.customProperties["sensor_model"] as? String
+        val sensorModel = metadata.customProperties["sensor_model"]
         if (sensorModel != null) {
             return sensorModel
         }
         
         // Fallback: estimate based on camera ID and focal length
-        val focalLength = metadata.focalLength ?: 24f
+        val focalLengthStr = metadata.focalLength ?: "24mm"
+        val focalLength = focalLengthStr.substringBefore("mm").toFloatOrNull() ?: 24f
+        
         return when {
             focalLength >= 65f -> "IMX663"  // Telephoto 70/105mm
             focalLength <= 18f -> "IMX363"  // Ultra-wide 16mm
@@ -916,16 +918,21 @@ class PhotoProcessor(
      */
     private fun estimateIsoFromMetadata(metadata: MediaMetadata): Int {
         // Try to get actual ISO from metadata
-        val iso = metadata.customProperties["iso"] as? Int
+        val iso = metadata.iso
         if (iso != null) {
             return iso
         }
         
+        // Try custom properties
+        val customIso = metadata.customProperties["iso"]?.toIntOrNull()
+        if (customIso != null) {
+            return customIso
+        }
+        
         // Estimate from exposure settings if available
         val exposureTime = metadata.exposureTime ?: 0L
-        val aperture = metadata.aperture ?: 2.0f
         
-        // Rough estimation based on exposure time and aperture
+        // Rough estimation based on exposure time
         return when {
             exposureTime > 100_000_000L -> 1600  // > 1/10s
             exposureTime > 50_000_000L -> 800   // > 1/20s
