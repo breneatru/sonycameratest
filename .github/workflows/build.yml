@@ -36,28 +36,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
           
-    - name: Cache NDK
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.android/ndk
-          ~/Android/Sdk/ndk
-        key: ${{ runner.os }}-ndk-${{ hashFiles('**/build.gradle.kts') }}
-        restore-keys: |
-          ${{ runner.os }}-ndk-
-          
-    - name: Install Android NDK
-      run: |
-        echo "y" | sdkmanager "ndk;29.0.14206865"
-      env:
-        ANDROID_HOME: ${{ env.HOME }}/Android/Sdk
-        ANDROID_SDK_ROOT: ${{ env.HOME }}/Android/Sdk
-        
     - name: Build Debug APK
-      run: ./gradlew assembleDefaultDebug --stacktrace
+      run: ./gradlew assembleDefaultDebug --stacktrace --no-daemon
       
     - name: Build Release APK (optional)
-      run: ./gradlew assembleDefaultRelease --stacktrace
+      run: ./gradlew assembleDefaultRelease --stacktrace --no-daemon
       continue-on-error: true
       
     - name: Upload Debug APK
