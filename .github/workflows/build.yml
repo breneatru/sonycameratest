@@ -20,28 +20,12 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'gradle'
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
-    - name: Cache Gradle packages
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-          ~/.android/build-cache
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-          
     - name: Build Debug APK
       run: ./gradlew assembleDefaultDebug --stacktrace --no-daemon
-      
-    - name: Build Release APK (optional)
-      run: ./gradlew assembleDefaultRelease --stacktrace --no-daemon
-      continue-on-error: true
       
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
@@ -49,11 +33,3 @@ jobs:
         name: app-debug
         path: app/build/outputs/apk/default/debug/*.apk
         retention-days: 30
-        
-    - name: Upload Release APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release
-        path: app/build/outputs/apk/default/release/*.apk
-        retention-days: 30
-        if: success()
